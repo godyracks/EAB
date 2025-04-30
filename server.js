@@ -29,7 +29,7 @@ const UPLOAD_DIR = process.env.UPLOAD_DIR || './uploads';
 const allowedOrigins = [
   'http://localhost:5173', // Vite frontend (development)
   'https://edu-ability.vercel.app', // Production frontend on Vercel
-  'https://edu-ability-backend.onrender.com', // Render backend (for testing)
+  'https://eduability.onrender.com', // Render backend (for testing)
 ];
 
 // Log environment variables for debugging (mask sensitive data)
