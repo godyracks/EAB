@@ -1,0 +1,19 @@
+{
+    "version": 2,
+    "builds": [
+      {
+        "src": "server.js",
+        "use": "@vercel/node"
+      }
+    ],
+    "routes": [
+      {
+        "src": "/(.*)",
+        "dest": "server.js"
+      }
+    ],
+    "env": {
+      "NODE_ENV": "production",
+      "REDIS_URL": "redis://default:XEZrUxWPiJTlbupoRrlNMDcC5dNMI3ZK@redis-12327.c241.us-east-1-4.ec2.redns.redis-cloud.com:12327"
+    }
+  }

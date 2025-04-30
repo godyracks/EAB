@@ -1,0 +1,29 @@
+backend/
+├── config/
+│   └── db.js
+├── middleware/
+│   └── auth.middleware.js
+├── мodels/
+│   ├── User.js
+│   ├── Review.js
+│   ├── Technology.js
+│   └── Search.js
+├── controllers/
+│   ├── auth.controller.js
+│   ├── review.controller.js
+│   ├── tech.controller.js
+│   └── search.controller.js
+├── routes/
+│   ├── auth.routes.js
+│   ├── review.routes.js
+│   ├── tech.routes.js
+│   └── search.routes.js
+├── services/
+│   ├── email.service.js
+│   └── search.service.js
+├── seeders/
+│   └── seed.js
+├── .env
+├── server.js
+├── redis.js
+└── package.json
