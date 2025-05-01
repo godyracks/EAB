@@ -33,6 +33,7 @@ const technologySchema = new mongoose.Schema({
   category: { type: String },
   systemRequirements: { type: String },
   keyFeatures: { type: String },
+  image_url: { type: String }, // New field for storing image URL
   createdAt: {
     type: Date,
     default: Date.now,

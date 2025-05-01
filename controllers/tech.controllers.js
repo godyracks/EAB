@@ -1,7 +1,7 @@
 const Technology = require('../models/technology.models');
 
 const createTechnology = async (req, res) => {
-  const { name, description, coreVitals, featureComparison, cost, category, ...otherFields } = req.body;
+  const { name, description, coreVitals, featureComparison, cost, category, tech_img_link, ...otherFields } = req.body;
   try {
     // Validate required fields
     if (!name || !description) {
@@ -36,6 +36,7 @@ const createTechnology = async (req, res) => {
       evaluation: otherFields.evaluation || '',
       systemRequirements: otherFields.systemRequirements || '',
       keyFeatures: otherFields.keyFeatures || '',
+      image_url: tech_img_link || '', // Map tech_img_link to image_url
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -51,23 +52,17 @@ const createTechnology = async (req, res) => {
 
 const getAllTechnologies = async (req, res) => {
   try {
-    // Extract query parameters for filtering
     const { category, cost, ratingMin, features } = req.query;
-
-    // Build the query object
     let query = {};
 
-    // Filter by category
     if (category) {
       query.category = category.toLowerCase();
     }
 
-    // Filter by cost
     if (cost) {
       query.cost = cost.toLowerCase();
     }
 
-    // Filter by minimum rating (using featuresRating from coreVitals)
     if (ratingMin) {
       const minRating = parseFloat(ratingMin);
       if (!isNaN(minRating)) {
@@ -75,7 +70,6 @@ const getAllTechnologies = async (req, res) => {
       }
     }
 
-    // Filter by features (from featureComparison)
     if (features) {
       const featureList = features.split(',').map((f) => f.trim().toLowerCase());
       const featureQuery = featureList.reduce((acc, feature) => {
@@ -87,7 +81,7 @@ const getAllTechnologies = async (req, res) => {
       Object.assign(query, featureQuery);
     }
 
-    console.log('Query:', query); // Debug log
+    console.log('Query:', query);
     const technologies = await Technology.find(query);
     res.status(200).json(technologies);
   } catch (error) {
@@ -116,9 +110,8 @@ const updateTechnology = async (req, res) => {
       return res.status(404).json({ message: 'Technology not found' });
     }
 
-    const { name, description, coreVitals, featureComparison, cost, category, ...otherFields } = req.body;
+    const { name, description, coreVitals, featureComparison, cost, category, tech_img_link, ...otherFields } = req.body;
 
-    // Validate required fields
     if (name !== undefined && !name) {
       return res.status(400).json({ message: 'Name is required' });
     }
@@ -126,7 +119,6 @@ const updateTechnology = async (req, res) => {
       return res.status(400).json({ message: 'Description is required' });
     }
 
-    // Update fields
     technology.name = name !== undefined ? name : technology.name;
     technology.description = description !== undefined ? description : technology.description;
     technology.coreVitals = coreVitals || technology.coreVitals;
@@ -140,6 +132,7 @@ const updateTechnology = async (req, res) => {
     technology.evaluation = otherFields.evaluation !== undefined ? otherFields.evaluation : technology.evaluation;
     technology.systemRequirements = otherFields.systemRequirements !== undefined ? otherFields.systemRequirements : technology.systemRequirements;
     technology.keyFeatures = otherFields.keyFeatures !== undefined ? otherFields.keyFeatures : technology.keyFeatures;
+    technology.image_url = tech_img_link !== undefined ? tech_img_link : technology.image_url; // Update image_url
     technology.updatedAt = new Date();
 
     await technology.save();
