@@ -21,7 +21,7 @@ const sendOTP = async (email, otp) => {
     const { data, error } = await resend.emails.send({
       from: fromEmail,
       to: email,
-      subject: 'Your OTP Code - TechApp',
+      subject: 'Your OTP Code - Edu-Ability',
       text: `Your OTP is ${otp}. It expires in 10 minutes.`,
     });
 
