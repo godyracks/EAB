@@ -34,6 +34,13 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: null,
   },
+  avatar: { type: String }, // URL to avatar image
+  socialLinks: {
+    twitter: { type: String },
+    linkedin: { type: String },
+    github: { type: String }
+  },
+  lastLogin: { type: Date },
   createdAt: {
     type: Date,
     default: Date.now,

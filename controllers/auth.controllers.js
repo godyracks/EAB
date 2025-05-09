@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/user.models');
 const { sendOTP } = require('../services/email.services');
 const redisClient = require('../redis');
+const path = require('path');
 
 // In-memory fallback storage for OTPs
 const inMemoryStorage = {
@@ -11,11 +12,10 @@ const inMemoryStorage = {
 
 const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString();
 
-// Store OTP with fallback to in-memory storage
 const storeOTP = async (userId, otp) => {
   console.log(`Storing OTP for userId: ${userId}`);
   try {
-    await redisClient.set(`otp:${userId}`, otp, { EX: 600 }); // Expire after 10 minutes
+    await redisClient.set(`otp:${userId}`, otp, { EX: 600 });
     console.log('OTP stored in Redis');
     return true;
   } catch (error) {
@@ -27,7 +27,6 @@ const storeOTP = async (userId, otp) => {
   }
 };
 
-// Verify OTP with fallback to in-memory storage
 const verifyStoredOTP = async (userId, otp) => {
   try {
     let storedOTP;
@@ -50,7 +49,6 @@ const verifyStoredOTP = async (userId, otp) => {
       throw new Error('Invalid OTP');
     }
 
-    // Clean up after verification
     try {
       await redisClient.del(`otp:${userId}`);
     } catch (error) {
@@ -76,7 +74,7 @@ const register = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const otp = generateOTP();
-    const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
 
     user = new User({
       email,
@@ -113,12 +111,11 @@ const verifyOTP = async (req, res) => {
       return res.status(400).json({ message: 'User not found' });
     }
 
-    // Verify OTP using Redis/in-memory storage
     await verifyStoredOTP(user.userId, otp);
 
-    // Clear OTP fields in the database
     user.otp = null;
     user.otpExpires = null;
+    user.lastLogin = new Date();
     await user.save();
 
     const token = jwt.sign(
@@ -150,6 +147,7 @@ const login = async (req, res) => {
     const otp = generateOTP();
     user.otp = otp;
     user.otpExpires = new Date(Date.now() + 10 * 60 * 1000);
+    user.lastLogin = new Date();
     await user.save();
     await storeOTP(user.userId, otp);
 
@@ -181,7 +179,7 @@ const getProfile = async (req, res) => {
 };
 
 const updateProfile = async (req, res) => {
-  const { email } = req.body;
+  const { email, socialLinks } = req.body;
 
   try {
     const user = await User.findOne({ userId: req.user.userId });
@@ -197,16 +195,50 @@ const updateProfile = async (req, res) => {
       user.email = email;
     }
 
+    if (socialLinks) {
+      user.socialLinks = {
+        twitter: socialLinks.twitter || user.socialLinks?.twitter,
+        linkedin: socialLinks.linkedin || user.socialLinks?.linkedin,
+        github: socialLinks.github || user.socialLinks?.github
+      };
+    }
+
     await user.save();
     res.status(200).json({
       userId: user.userId,
       email: user.email,
       role: user.role,
+      avatar: user.avatar,
+      socialLinks: user.socialLinks,
       createdAt: user.createdAt,
+      lastLogin: user.lastLogin
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-module.exports = { register, verifyOTP, login, getProfile, updateProfile };
+const uploadAvatar = async (req, res) => {
+  try {
+    const user = await User.findOne({ userId: req.user.userId });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+
+    user.avatar = `/uploads/${req.file.filename}`;
+    await user.save();
+
+    res.status(200).json({
+      message: 'Avatar uploaded successfully',
+      avatar: user.avatar
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = { register, verifyOTP, login, getProfile, updateProfile, uploadAvatar };
