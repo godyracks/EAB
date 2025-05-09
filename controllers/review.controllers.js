@@ -27,7 +27,7 @@ const createReview = async (req, res) => {
     }
 
     // Verify user exists by userId (UUID string)
-    const user = await mongoose.model('User').findOne({ userId: userId });
+    const user = await mongoose.model('User').findOne({ userId: userId }, 'userId email socialLinks');
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
@@ -41,13 +41,13 @@ const createReview = async (req, res) => {
     });
 
     await review.save();
-    // Populate technologyId for response
+    // Populate technologyId and return user data for response
     const populatedReview = await Review.findById(review._id)
       .populate('technologyId', 'name description')
       .lean();
     res.status(201).json({
       ...populatedReview,
-      userId: { userId: user.userId, email: user.email },
+      userId: { userId: user.userId, email: user.email, socialLinks: user.socialLinks || {} },
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -61,10 +61,10 @@ const getAllReviews = async (req, res) => {
       .lean();
     const populatedReviews = await Promise.all(
       reviews.map(async (review) => {
-        const user = await mongoose.model('User').findOne({ userId: review.userId }, 'userId email').lean();
+        const user = await mongoose.model('User').findOne({ userId: review.userId }, 'userId email socialLinks').lean();
         return {
           ...review,
-          userId: user ? { userId: user.userId, email: user.email } : null,
+          userId: user ? { userId: user.userId, email: user.email, socialLinks: user.socialLinks || {} } : null,
         };
       })
     );
@@ -86,10 +86,10 @@ const getReviewById = async (req, res) => {
     if (!review) {
       return res.status(404).json({ message: 'Review not found' });
     }
-    const user = await mongoose.model('User').findOne({ userId: review.userId }, 'userId email').lean();
+    const user = await mongoose.model('User').findOne({ userId: review.userId }, 'userId email socialLinks').lean();
     res.status(200).json({
       ...review,
-      userId: user ? { userId: user.userId, email: user.email } : null,
+      userId: user ? { userId: user.userId, email: user.email, socialLinks: user.socialLinks || {} } : null,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -124,10 +124,10 @@ const updateReview = async (req, res) => {
     const populatedReview = await Review.findById(id)
       .populate('technologyId', 'name description')
       .lean();
-    const user = await mongoose.model('User').findOne({ userId: review.userId }, 'userId email').lean();
+    const user = await mongoose.model('User').findOne({ userId: review.userId }, 'userId email socialLinks').lean();
     res.status(200).json({
       ...populatedReview,
-      userId: user ? { userId: user.userId, email: user.email } : null,
+      userId: user ? { userId: user.userId, email: user.email, socialLinks: user.socialLinks || {} } : null,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -163,10 +163,10 @@ const getReviewsByUserId = async (req, res) => {
     if (!reviews.length) {
       return res.status(404).json({ message: 'No reviews found for this user' });
     }
-    const user = await mongoose.model('User').findOne({ userId }, 'userId email').lean();
+    const user = await mongoose.model('User').findOne({ userId }, 'userId email socialLinks').lean();
     const populatedReviews = reviews.map(review => ({
       ...review,
-      userId: user ? { userId: user.userId, email: user.email } : null,
+      userId: user ? { userId: user.userId, email: user.email, socialLinks: user.socialLinks || {} } : null,
     }));
     res.status(200).json(populatedReviews);
   } catch (error) {

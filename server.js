@@ -10,6 +10,7 @@ const reviewRoutes = require('./routes/review.routes');
 const techRoutes = require('./routes/tech.routes');
 const searchRoutes = require('./routes/search.routes');
 const cors = require('cors');
+const fs = require('fs');
 
 // Load environment variables
 dotenv.config();
@@ -24,6 +25,12 @@ if (missingEnvVars.length > 0) {
 
 const PORT = process.env.PORT || 3000;
 const UPLOAD_DIR = process.env.UPLOAD_DIR || './uploads';
+
+// Ensure upload directory exists
+if (!fs.existsSync(UPLOAD_DIR)) {
+  fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+  console.log(`Created upload directory at ${UPLOAD_DIR}`);
+}
 
 // Define allowed origins
 const allowedOrigins = [
@@ -66,7 +73,9 @@ app.use(
 // Middleware
 app.use(morgan('dev'));
 app.use(bodyParser.json());
-//we use image_url to save on server sace
+
+// Serve static files from uploads directory
+app.use('/uploads', express.static(UPLOAD_DIR));
 
 // Connect to MongoDB
 connectDB().catch(err => {
