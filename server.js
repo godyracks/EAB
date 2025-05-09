@@ -66,8 +66,7 @@ app.use(
 // Middleware
 app.use(morgan('dev'));
 app.use(bodyParser.json());
-// File uploads are disabled for Render's free tier due to ephemeral filesystem
-// app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+//we use image_url to save on server sace
 
 // Connect to MongoDB
 connectDB().catch(err => {

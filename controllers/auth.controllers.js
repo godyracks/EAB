@@ -168,4 +168,45 @@ const login = async (req, res) => {
   }
 };
 
-module.exports = { register, verifyOTP, login };
+const getProfile = async (req, res) => {
+  try {
+    const user = await User.findOne({ userId: req.user.userId }).select('-password -otp -otpExpires');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.status(200).json(user);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const updateProfile = async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    const user = await User.findOne({ userId: req.user.userId });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (email && email !== user.email) {
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+        return res.status(400).json({ message: 'Email already in use' });
+      }
+      user.email = email;
+    }
+
+    await user.save();
+    res.status(200).json({
+      userId: user.userId,
+      email: user.email,
+      role: user.role,
+      createdAt: user.createdAt,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = { register, verifyOTP, login, getProfile, updateProfile };
