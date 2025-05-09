@@ -37,6 +37,9 @@ const allowedOrigins = [
   'http://localhost:5173', // Vite frontend (development)
   'https://edu-ability.vercel.app', // Production frontend on Vercel
   'https://eduability.onrender.com', // Render backend (for testing)
+  'https://edu-ability.com', // Production frontend on Lightsail
+  'http://edu-ability.com',
+  'edu-ability.com',
 ];
 
 // Log environment variables for debugging (mask sensitive data)
