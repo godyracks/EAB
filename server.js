@@ -34,15 +34,14 @@ if (!fs.existsSync(UPLOAD_DIR)) {
 
 // Define allowed origins
 const allowedOrigins = [
-  'http://localhost:5173', // Vite frontend (development)
-  'https://edu-ability.vercel.app', // Production frontend on Vercel
-  'https://eduability.onrender.com', // Render backend (for testing)
-  'https://edu-ability.com', // Production frontend on Lightsail
-  'http://edu-ability.com',
+  'http://localhost:5173',
+  'https://edu-ability.vercel.app',
+  'https://eduability.onrender.com',
+  'https://edu-ability.com',
   'edu-ability.com',
 ];
 
-// Log environment variables for debugging (mask sensitive data)
+// Log environment variables for debugging
 console.log('Environment Variables:');
 console.log('NODE_ENV:', process.env.NODE_ENV);
 console.log('MONGO_URI:', process.env.MONGO_URI.replace(/:\/\/[^:]+:[^@]+@/, '://[REDACTED]:[REDACTED]@'));
@@ -58,7 +57,6 @@ const app = express();
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (e.g., Postman, curl)
       if (!origin) return callback(null, true);
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);
@@ -80,6 +78,12 @@ app.use(bodyParser.json());
 // Serve static files from uploads directory
 app.use('/uploads', express.static(UPLOAD_DIR));
 
+// Log all incoming requests
+app.use((req, res, next) => {
+  console.log('Received request path:', req.path);
+  next();
+});
+
 // Connect to MongoDB
 connectDB().catch(err => {
   console.error('Failed to connect to MongoDB, exiting...', err);
@@ -87,7 +91,8 @@ connectDB().catch(err => {
 });
 
 // Routes
-app.use('/api/auth', authRoutes);
+app.use('/auth', authRoutes);
+console.log('Mounted auth routes at /auth');
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/technologies', techRoutes);
 app.use('/api/search', searchRoutes);
@@ -106,5 +111,4 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
 });
 
-// Export the app for Vercel (if needed in the future)
 module.exports = app;
