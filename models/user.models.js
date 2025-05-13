@@ -34,11 +34,26 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: null,
   },
-  avatar: { type: String }, // URL to avatar image
+  avatar: { type: String },
   socialLinks: {
     twitter: { type: String },
     linkedin: { type: String },
     github: { type: String }
+  },
+  hasDisability: {
+    type: Boolean,
+    default: false,
+  },
+  disabilityDetails: {
+    type: {
+      type: String,
+      enum: ['visual', 'auditory', 'motor', 'cognitive', 'other'],
+    },
+    accommodations: [String],
+    notes: String,
+  },
+  profession: {
+    type: String,
   },
   lastLogin: { type: Date },
   createdAt: {
